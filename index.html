@@ -11,17 +11,17 @@
 
     <style>
         :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f7f6; --prot: #3498db; --carb: #f1c40f; --gras: #e67e22; --white: #ffffff; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); padding: 10px; color: var(--primary); margin: 0; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px; color: var(--primary); margin: 0; }
         .container { max-width: 800px; margin: auto; background: var(--white); padding: 15px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         h1 { text-align: center; border-bottom: 3px solid var(--accent); padding-bottom: 10px; margin-bottom: 20px; font-size: 1.4rem; }
         .form-grid { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 12px; position: relative; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; -webkit-appearance: none; }
         .btn-add { background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; padding: 15px; font-size: 1rem; }
-        #lista-busqueda { position: absolute; top: 60px; left: 15px; background: white; border: 1px solid #ccc; width: calc(100% - 30px); max-height: 200px; overflow-y: auto; display: none; z-index: 100; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .sug-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; text-transform: uppercase; font-size: 0.9rem; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85rem; }
-        th { background: #f2f2f2; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
+        #lista-busqueda { position: absolute; top: 60px; left: 15px; background: white; border: 2px solid var(--accent); width: calc(100% - 30px); max-height: 200px; overflow-y: auto; display: none; z-index: 100; border-radius: 8px; }
+        .sug-item { padding: 15px; cursor: pointer; border-bottom: 1px solid #eee; text-transform: uppercase; font-weight: bold; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f2f2f2; padding: 10px; text-align: left; font-size: 0.8rem; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         .resumen { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .card { padding: 12px; border-radius: 10px; text-align: center; color: white; font-size: 0.8rem; }
         .c-kcal { background: var(--primary); grid-column: span 3; font-size: 1.3rem; font-weight: bold; }
@@ -34,24 +34,26 @@
     <h1>Marcompany Universal</h1>
     
     <div class="form-grid">
-        <input type="text" id="nombre" placeholder="Escribe alimento..." oninput="buscarSugerencia()" autocomplete="off">
+        <label style="font-size: 0.8rem; font-weight: bold;">ALIMENTO</label>
+        <input type="text" id="nombre" placeholder="Escribe para buscar..." onkeyup="buscarSugerencia()" autocomplete="off">
         <div id="lista-busqueda"></div>
         
+        <label style="font-size: 0.8rem; font-weight: bold;">PESO</label>
         <div style="display: flex; gap: 5px;">
-            <input type="number" id="peso" placeholder="Cant.">
-            <select id="unidad" style="width: 80px;">
-                <option value="g">g</option>
-                <option value="mg">mg</option>
+            <input type="number" id="peso" placeholder="¿Cuánto pesa?">
+            <select id="unidad" style="width: 100px; background: #eee;">
+                <option value="g">Gramos</option>
+                <option value="mg">Mg</option>
             </select>
         </div>
-        <button class="btn-add" onclick="agregar()">AÑADIR AHORA</button>
+        <button class="btn-add" onclick="agregar()">AÑADIR AL REGISTRO</button>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Cant.</th>
+                <th>Peso</th>
                 <th>Kcal</th>
                 <th>P/C/G</th>
                 <th></th>
@@ -69,90 +71,117 @@
 </div>
 
 <script>
+    // Base de datos extendida
     const db = {
         "pollo": { k: 165, p: 31, c: 0, g: 3.6 },
         "pavo": { k: 105, p: 24, c: 0, g: 1 },
         "atun": { k: 116, p: 26, c: 0, g: 1 },
         "salmon": { k: 208, p: 20, c: 0, g: 13 },
+        "ternera": { k: 250, p: 26, c: 0, g: 15 },
+        "huevo": { k: 155, p: 13, c: 1.1, g: 11 },
         "borraja": { k: 21, p: 1.8, c: 3, g: 0.7 },
         "judias verdes": { k: 31, p: 1.8, c: 7, g: 0.2 },
         "judias blancas": { k: 333, p: 23, c: 60, g: 0.8 },
+        "lentejas": { k: 116, p: 9, c: 20, g: 0.4 },
+        "patata": { k: 77, p: 2, c: 17, g: 0.1 },
+        "arroz": { k: 130, p: 2.7, c: 28, g: 0.3 },
         "nueces": { k: 654, p: 15, c: 14, g: 65 },
         "anacardos": { k: 553, p: 18, c: 30, g: 44 },
+        "almendras": { k: 579, p: 21, c: 22, g: 50 },
         "donut": { k: 450, p: 5, c: 50, g: 25 },
-        "naranja": { k: 47, p: 0.9, c: 12, g: 0.1 }
+        "croissant": { k: 406, p: 8, c: 45, g: 21 },
+        "naranja": { k: 47, p: 0.9, c: 12, g: 0.1 },
+        "platano": { k: 89, p: 1.1, c: 23, g: 0.3 }
     };
 
     let lista = [];
 
     function buscarSugerencia() {
-        const input = document.getElementById('nombre').value.toLowerCase();
-        const div = document.getElementById('lista-busqueda');
-        if (input.length < 1) { div.style.display = 'none'; return; }
+        const buscado = document.getElementById('nombre').value.toLowerCase();
+        const contenedor = document.getElementById('lista-busqueda');
         
-        const sugerencias = Object.keys(db).filter(f => f.includes(input));
-        div.innerHTML = sugerencias.map(s => `<div class="sug-item" onclick="seleccionar('${s}')">${s}</div>`).join('');
-        div.style.display = sugerencias.length > 0 ? 'block' : 'none';
+        if (buscado.length < 1) {
+            contenedor.style.display = 'none';
+            return;
+        }
+
+        const claves = Object.keys(db);
+        const filtrados = claves.filter(alimento => alimento.includes(buscado));
+
+        if (filtrados.length > 0) {
+            contenedor.innerHTML = filtrados.map(f => `<div class="sug-item" onclick="seleccionar('${f}')">${f}</div>`).join('');
+            contenedor.style.display = 'block';
+        } else {
+            contenedor.style.display = 'none';
+        }
     }
 
-    function seleccionar(val) {
-        document.getElementById('nombre').value = val;
+    function seleccionar(nombre) {
+        document.getElementById('nombre').value = nombre;
         document.getElementById('lista-busqueda').style.display = 'none';
     }
 
     function agregar() {
-        const n = document.getElementById('nombre').value.toLowerCase().trim();
-        const cant = parseFloat(document.getElementById('peso').value);
+        const nombreAlimento = document.getElementById('nombre').value.toLowerCase().trim();
+        const pesoValor = parseFloat(document.getElementById('peso').value);
         const uni = document.getElementById('unidad').value;
-        
-        if (!db[n] || isNaN(cant)) {
-            alert("Selecciona un alimento de la lista y pon una cantidad válida.");
+
+        if (!db[nombreAlimento]) {
+            alert("Ese alimento no está en la lista. Prueba con Pollo, Borraja, etc.");
+            return;
+        }
+        if (isNaN(pesoValor) || pesoValor <= 0) {
+            alert("Pon un peso correcto.");
             return;
         }
 
-        let pesoG = (uni === "mg") ? cant / 1000 : cant;
-        const info = db[n];
-        const factor = pesoG / 100;
+        // Convertir todo a gramos para el cálculo
+        let pesoEnG = (uni === "mg") ? pesoValor / 1000 : pesoValor;
         
+        const info = db[nombreAlimento];
+        const factor = pesoEnG / 100;
+
         lista.push({
-            n: n,
-            displayPeso: cant + uni,
-            k: info.k * factor,
+            nombre: nombreAlimento,
+            pesoMostrar: pesoValor + uni,
+            kcal: info.k * factor,
             p: info.p * factor,
             c: info.c * factor,
             g: info.g * factor
         });
+
+        actualizarUI();
         
-        actualizar();
+        // Limpiar campos
         document.getElementById('nombre').value = '';
         document.getElementById('peso').value = '';
     }
 
-    function actualizar() {
-        const cuerpo = document.getElementById('cuerpo');
-        cuerpo.innerHTML = '';
+    function actualizarUI() {
+        const tabla = document.getElementById('cuerpo');
+        tabla.innerHTML = '';
         let tk=0, tp=0, tc=0, tg=0;
-        
+
         lista.forEach((item, index) => {
-            tk += item.k; tp += item.p; tc += item.c; tg += item.g;
-            cuerpo.innerHTML += `<tr>
-                <td>${item.n.toUpperCase()}</td>
-                <td>${item.displayPeso}</td>
-                <td>${item.k.toFixed(0)}</td>
+            tk += item.kcal; tp += item.p; tc += item.c; tg += item.g;
+            tabla.innerHTML += `<tr>
+                <td style="text-transform:uppercase"><strong>${item.nombre}</strong></td>
+                <td>${item.pesoMostrar}</td>
+                <td>${item.kcal.toFixed(0)}</td>
                 <td>${item.p.toFixed(1)}/${item.c.toFixed(1)}/${item.g.toFixed(1)}</td>
-                <td><button onclick="eliminar(${index})" style="color:red; border:none; background:none; font-size:1.2rem;">✕</button></td>
+                <td><button onclick="borrar(${index})" style="color:red; background:none; border:none; font-weight:bold; font-size:1.2rem;">✕</button></td>
             </tr>`;
         });
-        
+
         document.getElementById('r-kcal').innerText = tk.toFixed(0);
         document.getElementById('r-p').innerText = tp.toFixed(1);
         document.getElementById('r-c').innerText = tc.toFixed(1);
         document.getElementById('r-g').innerText = tg.toFixed(1);
     }
 
-    function eliminar(index) {
-        lista.splice(index, 1);
-        actualizar();
+    function borrar(idx) {
+        lista.splice(idx, 1);
+        actualizarUI();
     }
 </script>
 
