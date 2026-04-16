@@ -15,11 +15,11 @@
         .form-grid { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 12px; position: relative; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         .btn-add { background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; padding: 15px; font-size: 1rem; }
-        #lista-busqueda { position: absolute; top: 60px; left: 15px; background: white; border: 2px solid var(--accent); width: calc(100% - 30px); max-height: 200px; overflow-y: auto; display: none; z-index: 100; border-radius: 8px; }
-        .sug-item { padding: 15px; cursor: pointer; border-bottom: 1px solid #eee; text-transform: uppercase; font-weight: bold; color: #333; }
+        #lista-busqueda { position: absolute; top: 60px; left: 15px; background: white; border: 2px solid var(--accent); width: calc(100% - 30px); max-height: 250px; overflow-y: auto; display: none; z-index: 100; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .sug-item { padding: 15px; cursor: pointer; border-bottom: 1px solid #eee; text-transform: uppercase; font-weight: bold; color: #333; font-size: 0.85rem; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #f2f2f2; padding: 10px; text-align: left; font-size: 0.8rem; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        th { background: #f2f2f2; padding: 10px; text-align: left; font-size: 0.75rem; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
         .resumen { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .card { padding: 12px; border-radius: 10px; text-align: center; color: white; font-size: 0.8rem; }
         .c-kcal { background: var(--primary); grid-column: span 3; font-size: 1.3rem; font-weight: bold; }
@@ -31,10 +31,10 @@
 <div class="container">
     <h1>Marcompany Universal</h1>
     <div class="form-grid">
-        <label style="font-size: 0.8rem; font-weight: bold;">ALIMENTO</label>
-        <input type="text" id="nombre" placeholder="Busca Avena, Pollo, Jamon..." onkeyup="buscarSugerencia()" autocomplete="off">
+        <label style="font-size: 0.8rem; font-weight: bold;">BUSCAR ALIMENTO</label>
+        <input type="text" id="nombre" placeholder="Escribe para buscar..." onkeyup="buscarSugerencia()" autocomplete="off">
         <div id="lista-busqueda"></div>
-        <label style="font-size: 0.8rem; font-weight: bold;">PESO</label>
+        <label style="font-size: 0.8rem; font-weight: bold;">PESO / CANTIDAD</label>
         <div style="display: flex; gap: 5px;">
             <input type="number" id="peso" placeholder="¿Cuánto?">
             <select id="unidad" style="width: 100px; background: #eee;">
@@ -42,7 +42,7 @@
                 <option value="mg">Mg</option>
             </select>
         </div>
-        <button class="btn-add" onclick="agregar()">AÑADIR AL REGISTRO</button>
+        <button class="btn-add" onclick="agregar()">AÑADIR A LA DIETA</button>
     </div>
     <table>
         <thead><tr><th>Nombre</th><th>Peso</th><th>Kcal</th><th>P/C/G</th><th></th></tr></thead>
@@ -58,35 +58,49 @@
 
 <script>
     const db = {
-        "avena": { k: 389, p: 16.9, c: 66, g: 6.9 },
-        "levadura de cerveza": { k: 325, p: 45, c: 35, g: 1 },
-        "pollo": { k: 165, p: 31, c: 0, g: 3.6 }, 
-        "pavo": { k: 105, p: 24, c: 0, g: 1 },
-        "jamon york": { k: 105, p: 18, c: 1, g: 3 }, 
-        "jamon serrano": { k: 240, p: 30, c: 0, g: 13 },
-        "huevo": { k: 155, p: 13, c: 1.1, g: 11 }, 
-        "atun": { k: 116, p: 26, c: 0, g: 1 },
-        "leche entera": { k: 62, p: 3.2, c: 4.8, g: 3.5 }, 
-        "leche desnatada": { k: 34, p: 3.4, c: 4.9, g: 0.1 },
-        "queso batido": { k: 46, p: 8, c: 3.5, g: 0.1 }, 
-        "yogur": { k: 60, p: 3.5, c: 4.5, g: 3.2 },
-        "patata": { k: 77, p: 2, c: 17, g: 0.1 }, 
-        "arroz": { k: 130, p: 2.7, c: 28, g: 0.3 }, 
-        "pasta": { k: 150, p: 5, c: 30, g: 1 },
-        "aguacate": { k: 160, p: 2, c: 8.5, g: 14.7 }, 
-        "melon": { k: 34, p: 0.8, c: 8, g: 0.2 },
-        "sandia": { k: 30, p: 0.6, c: 8, g: 0.2 }, 
-        "fresas": { k: 33, p: 0.7, c: 8, g: 0.3 }
+        // --- LACTEOS ---
+        "leche entera": { k: 62, p: 3.2, c: 4.8, g: 3.5 }, "leche desnatada": { k: 34, p: 3.4, c: 4.9, g: 0.1 }, "leche sin lactosa": { k: 37, p: 3.3, c: 4.7, g: 0.1 },
+        "yogur natural": { k: 61, p: 3.5, c: 4.7, g: 3.3 }, "yogur griego": { k: 115, p: 3.8, c: 3.2, g: 9.5 }, "kefir": { k: 64, p: 3.5, c: 4.8, g: 3.5 },
+        "queso fresco": { k: 103, p: 12, c: 3.5, g: 4 }, "queso curado": { k: 400, p: 25, c: 0.5, g: 33 }, "queso mozzarella": { k: 280, p: 22, c: 2, g: 20 },
+        "queso parmesano": { k: 431, p: 38, c: 4, g: 29 }, "queso cabra": { k: 364, p: 22, c: 0, g: 30 }, "mantequilla": { k: 717, p: 0.9, c: 0.1, g: 81 },
+        "nata": { k: 196, p: 2.7, c: 3.7, g: 19 }, "queso batido": { k: 46, p: 8, c: 3.5, g: 0.1 },
+        // --- LEGUMBRES ---
+        "lentejas": { k: 116, p: 9, c: 20, g: 0.4 }, "garbanzos": { k: 164, p: 9, c: 27, g: 2.6 }, "judias blancas": { k: 333, p: 23, c: 60, g: 0.8 },
+        "judias negras": { k: 341, p: 21, c: 62, g: 1.4 }, "guisantes": { k: 81, p: 5, c: 14, g: 0.4 }, "soja": { k: 446, p: 36, c: 30, g: 20 },
+        "habas": { k: 88, p: 8, c: 18, g: 0.7 }, "altramuces": { k: 371, p: 36, c: 40, g: 10 },
+        // --- CEREALES Y TUBERCULOS ---
+        "arroz blanco": { k: 130, p: 2.7, c: 28, g: 0.3 }, "arroz integral": { k: 111, p: 2.6, c: 23, g: 0.9 }, "avena": { k: 389, p: 16.9, c: 66, g: 6.9 },
+        "pasta": { k: 158, p: 5.8, c: 31, g: 0.9 }, "pan": { k: 265, p: 9, c: 49, g: 3.2 }, "cuscus": { k: 112, p: 3.8, c: 23, g: 0.2 },
+        "maiz": { k: 86, p: 3.2, c: 19, g: 1.2 }, "patata": { k: 77, p: 2, c: 17, g: 0.1 }, "boniato": { k: 86, p: 1.6, c: 20, g: 0.1 },
+        "yuca": { k: 160, p: 1.4, c: 38, g: 0.3 }, "quinoa": { k: 120, p: 4.4, c: 21, g: 1.9 }, "trigo sarraceno": { k: 343, p: 13, c: 71, g: 3.4 },
+        // --- PROTEINAS ---
+        "pollo": { k: 165, p: 31, c: 0, g: 3.6 }, "ternera": { k: 250, p: 26, c: 0, g: 15 }, "cerdo": { k: 242, p: 27, c: 0, g: 14 },
+        "pavo": { k: 105, p: 24, c: 0, g: 1 }, "atun": { k: 116, p: 26, c: 0, g: 1 }, "salmon": { k: 208, p: 20, c: 0, g: 13 },
+        "merluza": { k: 78, p: 12, c: 0, g: 0.8 }, "pulpo": { k: 82, p: 15, c: 2, g: 1 }, "huevo": { k: 155, p: 13, c: 1.1, g: 11 },
+        "jamon york": { k: 105, p: 18, c: 1, g: 3 }, "jamon serrano": { k: 240, p: 30, c: 0, g: 13 }, "sepia": { k: 75, p: 16, c: 0.7, g: 0.9 },
+        // --- VEGETALES ---
+        "alcachofa": { k: 47, p: 3.3, c: 10, g: 0.2 }, "brocoli": { k: 34, p: 2.8, c: 7, g: 0.4 }, "espinacas": { k: 23, p: 2.9, c: 3.6, g: 0.4 },
+        "tomate": { k: 18, p: 0.9, c: 3.9, g: 0.2 }, "lechuga": { k: 15, p: 1.4, c: 2.9, g: 0.2 }, "zanahoria": { k: 41, p: 0.9, c: 10, g: 0.2 },
+        "borraja": { k: 21, p: 1.8, c: 3, g: 0.7 }, "judias verdes": { k: 31, p: 1.8, c: 7, g: 0.2 },
+        // --- FRUTAS ---
+        "aguacate": { k: 160, p: 2, c: 8.5, g: 14.7 }, "platano": { k: 89, p: 1.1, c: 23, g: 0.3 }, "manzana": { k: 52, p: 0.3, c: 14, g: 0.2 },
+        "naranja": { k: 47, p: 0.9, c: 12, g: 0.1 }, "fresas": { k: 33, p: 0.7, c: 8, g: 0.3 }, "melon": { k: 34, p: 0.8, c: 8, g: 0.2 },
+        "sandia": { k: 30, p: 0.6, c: 8, g: 0.2 },
+        // --- GRASAS Y OTROS ---
+        "aceite oliva": { k: 884, p: 0, c: 0, g: 100 }, "nueces": { k: 654, p: 15, c: 14, g: 65 }, "almendras": { k: 579, p: 21, c: 22, g: 50 },
+        "chia": { k: 486, p: 17, c: 42, g: 31 }, "levadura de cerveza": { k: 325, p: 45, c: 35, g: 1 }
     };
 
     let lista = [];
 
     function buscarSugerencia() {
-        const buscado = document.getElementById('nombre').value.toLowerCase().trim();
+        const buscado = document.getElementById('nombre').value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const contenedor = document.getElementById('lista-busqueda');
         if (buscado.length < 1) { contenedor.style.display = 'none'; return; }
         
-        const filtrados = Object.keys(db).filter(a => a.includes(buscado));
+        const filtrados = Object.keys(db).filter(a => 
+            a.normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(buscado)
+        );
         
         if (filtrados.length > 0) {
             contenedor.innerHTML = filtrados.map(f => `<div class="sug-item" onclick="seleccionar('${f}')">${f}</div>`).join('');
@@ -100,16 +114,16 @@
     }
 
     function agregar() {
-        const nombreAlimento = document.getElementById('nombre').value.toLowerCase().trim();
+        const n = document.getElementById('nombre').value.toLowerCase().trim();
         const pesoValor = parseFloat(document.getElementById('peso').value);
         const uni = document.getElementById('unidad').value;
-        if (!db[nombreAlimento] || isNaN(pesoValor) || pesoValor <= 0) {
+        if (!db[n] || isNaN(pesoValor) || pesoValor <= 0) {
             alert("Selecciona un alimento de la lista y pon su peso."); return;
         }
         let pesoEnG = (uni === "mg") ? pesoValor / 1000 : pesoValor;
-        const info = db[nombreAlimento];
+        const info = db[n];
         const factor = pesoEnG / 100;
-        lista.push({ nombre: nombreAlimento, pesoMostrar: pesoValor + uni, kcal: info.k * factor, p: info.p * factor, c: info.c * factor, g: info.g * factor });
+        lista.push({ nombre: n, pesoMostrar: pesoValor + uni, kcal: info.k * factor, p: info.p * factor, c: info.c * factor, g: info.g * factor });
         actualizarUI();
         document.getElementById('nombre').value = ''; document.getElementById('peso').value = '';
     }
@@ -120,7 +134,7 @@
         let tk=0, tp=0, tc=0, tg=0;
         lista.forEach((item, index) => {
             tk += item.kcal; tp += item.p; tc += item.c; tg += item.g;
-            tabla.innerHTML += `<tr><td style="text-transform:uppercase"><strong>${item.nombre}</strong></td><td>${item.pesoMostrar}</td><td>${item.kcal.toFixed(0)}</td><td>${item.p.toFixed(1)}/${item.c.toFixed(1)}/${item.g.toFixed(1)}</td><td><button onclick="borrar(${index})" style="color:red; background:none; border:none; font-weight:bold;">✕</button></td></tr>`;
+            tabla.innerHTML += `<tr><td style="text-transform:uppercase"><strong>${item.nombre}</strong></td><td>${item.pesoMostrar}</td><td>${item.kcal.toFixed(0)}</td><td>${item.p.toFixed(1)}/${item.c.toFixed(1)}/${item.g.toFixed(1)}</td><td><button onclick="borrar(${index})" style="color:red; background:none; border:none; font-weight:bold; font-size:1.2rem;">✕</button></td></tr>`;
         });
         document.getElementById('r-kcal').innerText = tk.toFixed(0);
         document.getElementById('r-p').innerText = tp.toFixed(1);
