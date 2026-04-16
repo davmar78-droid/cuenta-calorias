@@ -14,10 +14,11 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; color: var(--primary); margin: 0; }
         .container { max-width: 950px; margin: auto; background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         h1 { text-align: center; border-bottom: 4px solid var(--accent); padding-bottom: 10px; margin-bottom: 25px; }
-        .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; background: #f9f9f9; padding: 20px; border-radius: 12px; position: relative; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-        .btn-add { background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; height: 48px; margin-top: 20px; font-size: 1rem; }
-        #lista-busqueda { position: absolute; top: 85px; left: 20px; background: white; border: 1px solid #ccc; width: calc(50% - 20px); max-height: 250px; overflow-y: auto; display: none; z-index: 100; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; background: #f9f9f9; padding: 20px; border-radius: 12px; position: relative; align-items: end; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        .btn-add { background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; height: 48px; font-size: 1rem; transition: 0.3s; }
+        .btn-add:hover { background: #219150; }
+        #lista-busqueda { position: absolute; top: 85px; left: 20px; background: white; border: 1px solid #ccc; width: 35%; max-height: 250px; overflow-y: auto; display: none; z-index: 100; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .sug-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.9rem; text-transform: uppercase; }
         .sug-item:hover { background: #f0f0f0; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -39,14 +40,21 @@
     <div class="form-grid">
         <div>
             <label><strong>Alimento</strong></label>
-            <input type="text" id="nombre" placeholder="Donut, borraja, salmon, anacardos..." oninput="buscarSugerencia()" autocomplete="off">
+            <input type="text" id="nombre" placeholder="Donut, borraja..." oninput="buscarSugerencia()" autocomplete="off">
             <div id="lista-busqueda"></div>
         </div>
         <div>
-            <label><strong>Peso (g)</strong></label>
-            <input type="number" id="peso" placeholder="Gramos">
+            <label><strong>Cantidad</strong></label>
+            <input type="number" id="peso" placeholder="Nº">
         </div>
-        <button class="btn-add" onclick="agregar()">AÑADIR AL DÍA</button>
+        <div>
+            <label><strong>Unidad</strong></label>
+            <select id="unidad">
+                <option value="g">Gramos (g)</option>
+                <option value="mg">Miligramos (mg)</option>
+            </select>
+        </div>
+        <button class="btn-add" onclick="agregar()">AÑADIR</button>
     </div>
 
     <table>
@@ -54,7 +62,7 @@
             <tr>
                 <th>Alimento</th>
                 <th>Tipo</th>
-                <th>Peso</th>
+                <th>Peso Real</th>
                 <th>Kcal</th>
                 <th>P / C / G</th>
                 <th></th>
@@ -73,110 +81,28 @@
 
 <script>
     const db = {
-        // --- PROTEÍNAS ---
         "pollo": { k: 165, p: 31, c: 0, g: 3.6, t: "PROTEÍNA", cl: "bg-prot" },
         "pavo": { k: 105, p: 24, c: 0, g: 1, t: "PROTEÍNA", cl: "bg-prot" },
         "atun": { k: 116, p: 26, c: 0, g: 1, t: "PROTEÍNA", cl: "bg-prot" },
         "sepia": { k: 75, p: 16, c: 0.7, g: 0.9, t: "PROTEÍNA", cl: "bg-prot" },
         "pulpo": { k: 82, p: 15, c: 2, g: 1, t: "PROTEÍNA", cl: "bg-prot" },
-        "bacalao": { k: 82, p: 18, c: 0, g: 0.7, t: "PROTEÍNA", cl: "bg-prot" },
-        "merluza": { k: 89, p: 18, c: 0, g: 2, t: "PROTEÍNA", cl: "bg-prot" },
         "salmon": { k: 208, p: 20, c: 0, g: 13, t: "PROTEÍNA", cl: "bg-prot" },
         "ternera": { k: 250, p: 26, c: 0, g: 15, t: "PROTEÍNA", cl: "bg-prot" },
-        "cerdo": { k: 240, p: 27, c: 0, g: 14, t: "PROTEÍNA", cl: "bg-prot" },
-        "huevo": { k: 155, p: 13, c: 1.1, g: 11, t: "PROTEÍNA", cl: "bg-prot" },
-        "clara": { k: 52, p: 11, c: 0.7, g: 0.2, t: "PROTEÍNA", cl: "bg-prot" },
-
-        // --- VERDURAS Y LEGUMBRES ---
         "borraja": { k: 21, p: 1.8, c: 3, g: 0.7, t: "VERDURA", cl: "bg-carb" },
         "judias verdes": { k: 31, p: 1.8, c: 7, g: 0.2, t: "VERDURA", cl: "bg-carb" },
         "judias blancas": { k: 333, p: 23, c: 60, g: 0.8, t: "HIDRATOS", cl: "bg-carb" },
         "lentejas": { k: 116, p: 9, c: 20, g: 0.4, t: "HIDRATOS", cl: "bg-carb" },
         "garbanzos": { k: 164, p: 9, c: 27, g: 2.6, t: "HIDRATOS", cl: "bg-carb" },
         "patata": { k: 77, p: 2, c: 17, g: 0.1, t: "HIDRATOS", cl: "bg-carb" },
-        "arroz": { k: 130, p: 2.7, c: 28, g: 0.3, t: "HIDRATOS", cl: "bg-carb" },
-        "pasta": { k: 150, p: 5, c: 30, g: 1, t: "HIDRATOS", cl: "bg-carb" },
-        "brocoli": { k: 34, p: 2.8, c: 7, g: 0.4, t: "VERDURA", cl: "bg-carb" },
-        "espinacas": { k: 23, p: 2.9, c: 3.6, g: 0.4, t: "VERDURA", cl: "bg-carb" },
-
-        // --- FRUTOS SECOS ---
         "nueces": { k: 654, p: 15, c: 14, g: 65, t: "GRASA", cl: "bg-gras" },
-        "almendras": { k: 579, p: 21, c: 22, g: 50, t: "GRASA", cl: "bg-gras" },
-        "pistachos": { k: 562, p: 20, c: 28, g: 45, t: "GRASA", cl: "bg-gras" },
         "anacardos": { k: 553, p: 18, c: 30, g: 44, t: "GRASA", cl: "bg-gras" },
-        "avellanas": { k: 628, p: 15, c: 17, g: 61, t: "GRASA", cl: "bg-gras" },
-        "cacahuetes": { k: 567, p: 26, c: 16, g: 49, t: "GRASA", cl: "bg-gras" },
-
-        // --- BOLLERÍA Y DULCES ---
         "donut": { k: 450, p: 5, c: 50, g: 25, t: "BOLLERÍA", cl: "bg-gras" },
-        "croissant": { k: 406, p: 8, c: 45, g: 21, t: "BOLLERÍA", cl: "bg-gras" },
-        "magdalena": { k: 375, p: 6, c: 50, g: 17, t: "BOLLERÍA", cl: "bg-gras" },
-        "galletas maria": { k: 440, p: 7, c: 75, g: 13, t: "DULCE", cl: "bg-carb" },
-        "chocolate": { k: 546, p: 5, c: 61, g: 31, t: "DULCE", cl: "bg-gras" },
-        "pantera rosa": { k: 430, p: 4, c: 55, g: 22, t: "BOLLERÍA", cl: "bg-gras" },
-
-        // --- FRUTAS ---
         "naranja": { k: 47, p: 0.9, c: 12, g: 0.1, t: "FRUTA", cl: "bg-carb" },
-        "sandia": { k: 30, p: 0.6, c: 8, g: 0.2, t: "FRUTA", cl: "bg-carb" },
-        "platano": { k: 89, p: 1.1, c: 23, g: 0.3, t: "FRUTA", cl: "bg-carb" },
-        "manzana": { k: 52, p: 0.3, c: 14, g: 0.2, t: "FRUTA", cl: "bg-carb" },
-        "fresa": { k: 33, p: 0.7, c: 8, g: 0.3, t: "FRUTA", cl: "bg-carb" }
+        "sandia": { k: 30, p: 0.6, c: 8, g: 0.2, t: "FRUTA", cl: "bg-carb" }
     };
 
     let lista = [];
 
     function buscarSugerencia() {
         const input = document.getElementById('nombre').value.toLowerCase();
-        const div = document.getElementById('lista-busqueda');
-        if (input.length < 1) { div.style.display = 'none'; return; }
-        
-        const sugerencias = Object.keys(db).filter(f => f.includes(input));
-        if (sugerencias.length > 0) {
-            div.innerHTML = sugerencias.map(s => `<div class="sug-item" onclick="seleccionar('${s}')">${s}</div>`).join('');
-            div.style.display = 'block';
-        } else { div.style.display = 'none'; }
-    }
-
-    function seleccionar(val) {
-        document.getElementById('nombre').value = val;
-        document.getElementById('lista-busqueda').style.display = 'none';
-    }
-
-    function agregar() {
-        const n = document.getElementById('nombre').value.toLowerCase().trim();
-        const p = parseFloat(document.getElementById('peso').value);
-        if (!db[n] || isNaN(p)) return alert("Selecciona un alimento de la lista y pon los gramos.");
-
-        const info = db[n];
-        const f = p / 100;
-        lista.push({ n, p, k: info.k*f, prot: info.p*f, carb: info.c*f, gras: info.g*f, t: info.t, cl: info.cl });
-        
-        actualizar();
-        document.getElementById('nombre').value = ''; 
-        document.getElementById('peso').value = '';
-    }
-
-    function actualizar() {
-        const cuerpo = document.getElementById('cuerpo');
-        cuerpo.innerHTML = '';
-        let tk=0, tp=0, tc=0, tg=0;
-        lista.forEach((i, idx) => {
-            tk+=i.k; tp+=i.prot; tc+=i.carb; tg+=i.gras;
-            cuerpo.innerHTML += `<tr>
-                <td><strong>${i.n.toUpperCase()}</strong></td>
-                <td><span class="badge ${i.cl}">${i.t}</span></td>
-                <td>${i.p}g</td>
-                <td>${i.k.toFixed(0)}</td>
-                <td>${i.prot.toFixed(1)} / ${i.carb.toFixed(1)} / ${i.gras.toFixed(1)}</td>
-                <td><button onclick="lista.splice(${idx},1);actualizar()" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.2rem;">✕</button></td>
-            </tr>`;
-        });
-        document.getElementById('r-kcal').innerText = tk.toFixed(0);
-        document.getElementById('r-p').innerText = tp.toFixed(1);
-        document.getElementById('r-c').innerText = tc.toFixed(1);
-        document.getElementById('r-g').innerText = tg.toFixed(1);
-    }
-</script>
-
-</body>
-</html>
+        const div = document.getElementById('lista
