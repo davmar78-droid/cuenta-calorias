@@ -32,7 +32,7 @@
     <h1>Marcompany Universal</h1>
     <div class="form-grid">
         <label style="font-size: 0.8rem; font-weight: bold;">ALIMENTO</label>
-        <input type="text" id="nombre" placeholder="Escribe (ej: Aguacate, Melon...)" onkeyup="buscarSugerencia()" autocomplete="off">
+        <input type="text" id="nombre" placeholder="Escribe (ej: Avena, Jamon...)" onkeyup="buscarSugerencia()" autocomplete="off">
         <div id="lista-busqueda"></div>
         <label style="font-size: 0.8rem; font-weight: bold;">PESO</label>
         <div style="display: flex; gap: 5px;">
@@ -58,29 +58,24 @@
 
 <script>
     const db = {
-        // --- FRUTAS NUEVAS ---
-        "aguacate": { k: 160, p: 2, c: 8.5, g: 14.7 },
-        "melon": { k: 34, p: 0.8, c: 8, g: 0.2 },
-        "sandia": { k: 30, p: 0.6, c: 8, g: 0.2 },
-        "fresas": { k: 33, p: 0.7, c: 8, g: 0.3 },
-        "platano": { k: 89, p: 1.1, c: 23, g: 0.3 },
-        "manzana": { k: 52, p: 0.3, c: 14, g: 0.2 },
-        "uvas": { k: 67, p: 0.6, c: 17, g: 0.4 },
-        "pera": { k: 57, p: 0.4, c: 15, g: 0.1 },
+        // --- SUPLEMENTOS Y DESAYUNO ---
+        "avena": { k: 389, p: 16.9, c: 66, g: 6.9 },
+        "levadura de cerveza": { k: 325, p: 45, c: 35, g: 1 },
+        // --- FRUTAS ---
+        "aguacate": { k: 160, p: 2, c: 8.5, g: 14.7 }, "melon": { k: 34, p: 0.8, c: 8, g: 0.2 },
+        "sandia": { k: 30, p: 0.6, c: 8, g: 0.2 }, "fresas": { k: 33, p: 0.7, c: 8, g: 0.3 },
+        "platano": { k: 89, p: 1.1, c: 23, g: 0.3 }, "manzana": { k: 52, p: 0.3, c: 14, g: 0.2 },
         // --- PROTEINAS Y EMBUTIDOS ---
-        "pollo": { k: 165, p: 31, c: 0, g: 3.6 }, "pavo": { k: 105, p: 24, c: 0, g: 1 }, "atun": { k: 116, p: 26, c: 0, g: 1 },
-        "salmon": { k: 208, p: 20, c: 0, g: 13 }, "sepia": { k: 75, p: 16, c: 0.7, g: 0.9 }, "pulpo": { k: 82, p: 15, c: 2, g: 1 },
+        "pollo": { k: 165, p: 31, c: 0, g: 3.6 }, "pavo": { k: 105, p: 24, c: 0, g: 1 },
         "jamon york": { k: 105, p: 18, c: 1, g: 3 }, "jamon serrano": { k: 240, p: 30, c: 0, g: 13 },
-        "lomo": { k: 200, p: 32, c: 1, g: 8 }, "huevo": { k: 155, p: 13, c: 1.1, g: 11 },
+        "huevo": { k: 155, p: 13, c: 1.1, g: 11 }, "atun": { k: 116, p: 26, c: 0, g: 1 },
         // --- LACTEOS ---
         "leche entera": { k: 62, p: 3.2, c: 4.8, g: 3.5 }, "leche desnatada": { k: 34, p: 3.4, c: 4.9, g: 0.1 },
         "queso batido": { k: 46, p: 8, c: 3.5, g: 0.1 }, "yogur": { k: 60, p: 3.5, c: 4.5, g: 3.2 },
         // --- HIDRATOS ---
         "patata": { k: 77, p: 2, c: 17, g: 0.1 }, "arroz": { k: 130, p: 2.7, c: 28, g: 0.3 }, "pasta": { k: 150, p: 5, c: 30, g: 1 },
-        "borraja": { k: 21, p: 1.8, c: 3, g: 0.7 }, "judias verdes": { k: 31, p: 1.8, c: 7, g: 0.2 },
-        // --- GRASAS ---
-        "nueces": { k: 654, p: 15, c: 14, g: 65 }, "almendras": { k: 579, p: 21, c: 22, g: 50 },
-        "donut": { k: 450, p: 5, c: 50, g: 25 }
+        "sepia": { k: 75, p: 16, c: 0.7, g: 0.9 }, "pulpo": { k: 82, p: 15, c: 2, g: 1 },
+        "borraja": { k: 21, p: 1.8, c: 3, g: 0.7 }, "judias verdes": { k: 31, p: 1.8, c: 7, g: 0.2 }
     };
 
     let lista = [];
